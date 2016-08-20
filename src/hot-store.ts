@@ -1,11 +1,8 @@
 import { NgModuleRef } from '@angular/core';
 import { StoreModule, Store } from '@ngrx/store';
 
-// This is where app state is kept between reloads
-let appState: any;
-
 export function hotModuleReplacement(
-  bootloader: () => Promise<NgModuleRef<any>>,
+  bootloader: (initialState?: any) => Promise<NgModuleRef<any>>,
   module: any
 ) {
   let MODULE_REF: NgModuleRef<any>;
@@ -19,12 +16,12 @@ export function hotModuleReplacement(
 
   // Bootstrap the app, and get the resulting NgModuleRef
   if (document.readyState === 'complete') {
-    bootloader()
+    bootloader(DATA)
       .then((modRef: NgModuleRef<any>) => MODULE_REF = modRef)
       .then(() => console.timeEnd('bootstrap'));
   } else {
     document.addEventListener('DOMContentLoaded', () => {
-      bootloader()
+      bootloader(DATA)
         .then((modRef: NgModuleRef<any>) => MODULE_REF = modRef)
         .then(() => console.timeEnd('bootstrap'));
     });
@@ -42,15 +39,9 @@ export function hotModuleReplacement(
   module.hot.dispose((data: any) => {
     console.time('dispose');
     const store: Store<any> = MODULE_REF.injector.get(Store);
-    appState = getState(store);
+    const appState = getState(store);
     (<any>Object).assign(data, { appState  });
     console.timeEnd('dispose');
   });
 
-}
-
-// Factory function for an @ngrx/store NgModule that is (maybe) initialized with
-// the state from before a hot load.
-export function provideHotStore(reducer: any) {
-  return StoreModule.provideStore(reducer, appState);
 }
