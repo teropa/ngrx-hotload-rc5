@@ -5,11 +5,8 @@ import { appReducer } from './app/app.reducer';
 import { hotModuleReplacement } from './hot-store';
 
 function main(initialState?: any) {
-  return platformBrowserDynamic().bootstrapModule(AppModule, {
-    providers: [
-      provideStore(appReducer, initialState)
-    ]
-  });
+  return platformBrowserDynamic(provideStore(appReducer, initialState))
+    .bootstrapModule(AppModule);
 }
 
 if((<any>module).hot) {
